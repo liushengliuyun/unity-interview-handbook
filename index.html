@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>SVS 面试应对手册</title><style>*{box-sizing:border-box;}html{scroll-behavior:smooth;}body{margin:0;font-family:"Source Han Serif SC","Noto Serif CJK SC","SimSun",serif;line-height:1.7;color:#222;background:#fff;}
+#layout{display:flex;}#toc{position:sticky;top:0;align-self:flex-start;width:240px;height:100vh;overflow-y:auto;padding:16px;border-right:1px solid #ddd;background:#fafafa;}
+#toc h1{font-size:1.05em;margin:0 0 12px;}#toc a{display:block;padding:4px 6px;color:#333;text-decoration:none;font-size:0.9em;border-radius:4px;}#toc a:hover{background:#eee;}
+#main{flex:1;padding:24px;min-width:0;}section{max-width:46em;margin:0 auto 3em;}h2{margin-top:1.6em;}
+table{border-collapse:collapse;width:100%;margin:0.8em 0;}th,td{border:1px solid #999;padding:4px 8px;text-align:left;}
+code{background:#eee;padding:1px 4px;font-family:Consolas,monospace;font-size:0.92em;}pre{background:#f4f4f4;padding:8px;overflow-x:auto;}pre code{padding:0;background:none;}
+blockquote{border-left:4px solid #aaa;margin:0.8em 0;padding:0.2em 0.8em;color:#444;background:#fafafa;}
+@media(max-width:900px){#toc{display:none;}#main{padding:12px;}}</style></head><body><div id="layout"><nav id="toc"><h1>SVS 面试应对手册</h1><a href="#ch0">前言：这本手册怎么用</a><a href="#ch1">第 1 章 BI 打点体系与 Adjust 归因</a><a href="#ch2">第 2 章 内存泄漏审计与治理</a><a href="#ch3">第 3 章 死代码扫描与清理</a><a href="#ch4">第 4 章 引导系统（Guide System）</a><a href="#ch5">第 5 章 FPS 战斗表现与 AI</a><a href="#ch6">第 6 章 UI 框架与 FairyGUI</a><a href="#ch7">第 7 章 渠道 SDK 与登录链路</a><a href="#ch8">第 8 章 BGM 与音效系统</a><a href="#ch9">第 9 章 工程工具链与环境适配</a><a href="#ch10">第 10 章 通用 Unity/Lua 题的项目化回答</a><a href="#ch11">第 11 章 优化方向汇总（跨模块路线图）</a><a href="#ch12">附录：STAR 故事速查卡</a></nav><main id="main"><section id="ch0">
+<h1>前言：这本手册怎么用</h1>
+<p>本手册基于 SVS 项目（Unity 3D 手游，C# + XLua + FairyGUI + HybridCLR + YooAssets）中<strong>实际做过的模块</strong>整理，每一章对应一个可以独立展开讲 15~30 分钟的模块，结构统一为：</p>
+<ul><li><strong>模块背景</strong>：一句话让面试官知道你负责什么、规模多大。</li><li><strong>高频问题与回答要点</strong>：面试官最可能问的问题，以及回答时应覆盖的关键词。</li><li><strong>深水区追问</strong>：进阶面试官会追的第二层、第三层问题，以及深度回答思路。</li><li><strong>优化方向</strong>：被问"你觉得还能怎么改进"时的储备弹药。</li></ul>
+<h2>使用原则</h2>
+<ol><li><strong>先讲结论，再讲细节</strong>。任何问题的第一句回答给出定性结论（"这个问题本质是 X"），细节按追问逐层展开，不要一次性倾倒。</li><li><strong>所有回答必须落在你真实做过的事上</strong>。手册中的案例都来自真实提交，引用时给出 commit 号可以增强可信度（面试时口头说"我记得当时的提交是……"即可）。</li><li><strong>不会的题回到方法论文上</strong>。没做过的方向，用"我们项目当时的做法是……如果换成 X 方案，我会考虑……"的方式借力打力。</li></ol>
+<h1>自我介绍素材（30 秒 / 2 分钟两版）</h1>
+<h2>30 秒版</h2>
+<blockquote><p>4 年多 Unity 手游客户端开发经验，主用 C# + Lua（XLua）混合架构，深度参与过一款 SLG+FPS 玩法融合的手游（Unity 2022.3 / URP）。负责的模块横跨：BI 打点与 Adjust 归因、内存泄漏审计与治理、全工程 Lua 死代码扫描清理、FPS 引导系统与战斗表现、FairyGUI UI 框架层问题治理、多渠道 SDK 接入（游龙/审核包/FCM 通知）。习惯用脚本和自动化工具放大个人产出，做过死代码扫描器、交互式配置生成工具、日报/周报自动化 skill。</p></blockquote>
+<h2>2 分钟版</h2>
+<blockquote><p>我主要做 Unity 手游客户端，项目是 SLG 主城 + FPS 战斗的融合玩法，客户端是 C# + XLua 热更架构，UI 用 FairyGUI，资源用 YooAssets，热更用 HybridCLR。</p><p>我的工作可以分三类：<strong>一是业务功能</strong>——FPS 引导系统、联盟/服务器列表等 UI 功能、音效接入规范；<strong>二是质量治理</strong>——做过全工程内存泄漏审计（两阶段共修了 30 处左右，核心是 Unity Material 克隆泄漏、静态集合累积、YooAsset handle 泄漏），以及全工程 Lua/C# 死代码扫描（识别出 Lua 死代码 71 个文件、空壳 43 个、C# 死代码 33 个），清理了上千行；<strong>三是数据与 SDK</strong>——从零搭了 BI 打点的客户端侧规范（base_bi 表驱动 + BtnClickRequest 通道），接了 Adjust 归因全链路（含热更时序问题、设备 ID 上报双通路），做了多渠道包账号隔离。</p><p>特点是喜欢把重复劳动工具化：写过死代码扫描脚本、交互式配置生成工具、日报自动提交 skill，团队内的音效接入、UI 开发都有我沉淀的规范流程 skill。</p></blockquote>
+<h2>项目一句话介绍（防"介绍一下你的项目"）</h2>
+<blockquote><p>SLG 主城（建造/联盟/活动）+ FPS 玩法的融合手游，客户端 C# 常驻 + Lua 热更双层。我的部分：FPS 引导与战斗表现、BI/归因数据链路、内存与死代码治理、渠道 SDK。团队节奏是周版本，直接在 dev 分支高频小步提交。</p></blockquote>
+<p>---</p>
+<h1>高频通用问题的"项目化"回答策略</h1>
+<p>面试通用题（自我介绍、离职原因、亮点项目）通用模板之外，SVS 项目的差异化亮点排序：</p>
+<ol><li><strong>内存泄漏审计</strong>（技术深度最强，可讲 Material getter 克隆机制、static 累积、YooAsset 引用计数）</li><li><strong>BI 打点 + Adjust 归因</strong>（业务闭环最完整，从协议字段到 token 管理到真机验证）</li><li><strong>死代码扫描</strong>（方法论最独特，动态语言死代码判定是普适难题）</li><li><strong>FPS 引导系统</strong>（链路最复杂，状态机+时序+表现层联动）</li><li><strong>渠道账号隔离</strong>（坑最多，读写侧一致性、盲区补全后 revert 的工程判断）</li></ol>
+</section>
+<section id="ch1">
+<h1>第 1 章 BI 打点体系与 Adjust 归因</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>我负责项目 BI 埋点客户端侧的体系化改造和 Adjust 归因全链路接入。埋点侧把散落的打点统一到 base_bi 配置表驱动 + BtnClickRequest 统一通道；归因侧从协议字段、归因轮询桥、设备 ID 上报双通路到编辑器模拟链路都是我做的，中间踩过 HybridCLR 热更时序、ServiceLocator 门禁等深坑。</p></blockquote>
+<h2>高频问题与回答要点</h2>
+<h3>Q1: 你们项目的埋点体系是怎么设计的？</h3>
+<p><strong>要点式回答：</strong></p>
+<ul><li><strong>三层结构</strong>：业务层只负责"发"，中转层统一收集，配置层定义"发什么"。</li><li><strong>配置表驱动</strong>：所有打点定义在 <code>base_bi</code> 配置表（Luban 导出为 Lua，defaultValues 元表——等于默认值的字段导出时省略，<strong>不能误判为字段缺失</strong>）。每个事件一行，含事件名、参数、bi_args 中文描述。</li><li><strong>统一通道</strong>：按钮点击类打点走 <code>BtnClickRequest</code>，<code>btn_name</code> 由"事件名+cn 中文描述+extra 扩展参数"拼接，服务端做落库与分发（Adjust / 自有 BI）。</li><li><strong>事件码体系</strong>：<code>BI_EVENT</code> 常量 + base_bi 表场景/行号映射。打点代码只传事件码与参数，命名如 <code>FpsGuideResult_Win_关卡id</code>、<code>FpsFailGoto</code>。</li><li><strong>为什么这样设计</strong>：打点是策划/运营强依赖的，表驱动让运营侧可自助查口径，程序侧只需维护"接线"，改动集中在数据侧。</li></ul>
+<h3>Q2: 打点需求来了，你的完整工作流是什么？</h3>
+<ol><li><strong>口径确认</strong>：和策划确认事件语义（触发时机、参数、去重口径）——先对齐"什么时候算 Win"，再写代码。</li><li><strong>表侧</strong>：改 Excel 源表（prj_config），导出 Luban → <code>Assets/Luban</code> 只读，<strong>永远不直接改导出物</strong>。</li><li><strong>代码侧</strong>：在业务触发点 fire <code>BI_EVENT</code>，把参数（关卡 id、cn 描述）带进 BtnClickRequest。</li><li><strong>真机验证</strong>：Adjust 后台看实时日志，确认 token/事件/参数三对。</li><li><strong>存档</strong>：维护权威对照表（adjust_android_event_mapping.xlsx，3 个 sheet：事件↔token↔通道对照、发送状态、不发送原因分类：type11 仅 AF、type22 代码注释、无调用点等）——<strong>157 行能发出、47 行不发且逐行有原因</strong>，这个数字本身就是面试加分项。</li></ol>
+<h3>Q3: Adjust 归因是什么？你们怎么接的？</h3>
+<p><strong>概念层</strong>：Adjust 是移动归因平台，负责"用户从哪个广告渠道来"。核心链路：SDK 初始化 → 归因数据（tracker/network/campaign/creative）→ 客户端把归因结果随登录上报给服务器 → 服务器侧按渠道做运营配置（首充/活动）。</p>
+<p><strong>我们的实现层</strong>：</p>
+<ul><li><strong>SDK 非热更程序集</strong>，归因轮询逻辑在热更侧——所以轮询不能在 boot 阶段启动，必须等 <strong>HybridCLR 热更 dll 加载完成后</strong>再启动，否则反射拿不到桥接方法。</li><li><strong>桥接设计</strong>：C# 桥提供 <code>GetAdjustAttribution</code> / <code>FetchAdjustAttribution</code>，Lua 侧经 ServiceLocator 门面调用，宏切换真机（真机调 SDK）/编辑器（PlayerPrefs 模拟归因数据，全链路可离线调试）编辑器（PlayerPrefs 模拟归因数据，全链路可离线调试）。</li><li><strong>登录上报双通路</strong>：① 随 Adjust 归因推送（等归因到达）② <code>UpdateDeviceIds</code> 读到即推（idfa/adjustid 读到就先推）。HttpLogin / LOGIN / SetLoginNewChannel 三处协议都带设备标识字段，避免单通路失败导致服务器侧缺失。</li><li><strong>字段演进</strong>：NewChannel 取值从 tracker_name 改为 network（tracker_name 只能表达"哪个链接"，network 才表达"哪个渠道平台"）——这类口径变更要同步通知服务器/运营。</li><li><strong>GM 参数覆盖</strong>：测试期可通过 GM 参数覆盖归因结果（内聚到 <code>SDKManager:GetAdjustFromParams</code> 单点），避免测试账号被真实归因污染。</li></ul>
+<h3>Q4: 你们怎么验证打点/归因到了？</h3>
+<ul><li>Adjust 后台实时日志按设备标识过滤，核对 token、事件、渠道参数三项。</li><li>服务器侧落库后 BI 平台查数。</li><li><strong>编辑器模拟链路</strong>：编辑器下用 PlayerPrefs 模拟归因结果，可在没有真机的情况下验证登录上报链路逻辑。</li></ul>
+<h2>深水区追问</h2>
+<h3>追问 1: 为什么归因轮询不能在 boot 启动？</h3>
+<p>这是本项目<strong>最值得讲的时序深坑</strong>，标准答案分四层：</p>
+<ol><li><strong>背景</strong>：HybridCLR 热更程序集与 AOT 獲补元数据机制——Adjust SDK 在非热更程序集，桥接方法在热更程序集。</li><li><strong>现象</strong>：boot 阶段启动轮询 → 反射/服务发现拿不到桥 → 归因永远取不到。</li><li><strong>根因链</strong>：boot → LoadDll（热更 dll 加载）→ ServiceLocator 注册热更服务 → 之后 Lua 才能调用。任何"登录期就调 GamePlayCore 服务"的代码都会在这里报 <code>Service type not found</code>。</li><li><strong>解法与泛化</strong>：引入 <strong>DllEntry 门禁</strong>：热更程序集加载完成时置位 <code>_G.Root.DllEntry</code>（C# 侧），所有登录期服务调用以此为就绪信号。这个门禁后来泛化成登录期时序的统一解——归因轮询、AutoShrink 就绪信号、编辑器 QuickLoader 黑屏（编辑器启动时 DllEntry 回调置位 Root.DllEntry）都靠它修好。<strong>面试点：把一个 bug 修复泛化为架构级的就绪信号门禁</strong>。</li></ol>
+<h3>追问 2: 打点不准确怎么办？如何保证打点质量？</h3>
+<ul><li><strong>口径先行</strong>：事件语义与策划/服务端对齐后才写代码（实例：打点 39 教学完成打不上，根因是 Config431 指向不存在的引导 ID 201104，<code>IsTriggerComplete</code> 恒 false——<strong>配置侧口径错了，下游代码怎么写都没用</strong>；此案例当时是定位到根因后挂起等口径方）。</li></ul>
+<p>打点 39 教学完成打不上：根因是配置指向不存在的引导 ID，下游 token 配对了也没用，挂起等口径方确认。</p>
+<ul><li><strong>映射表存档</strong>：token ↔ 事件 ↔ 通道的权威对照表 + 每行"能发/不能发及原因"，运营侧口径混乱时直接甩表。</li><li><strong>发送状态盘点</strong>：定期盘点 base_bi 全表发送状态（157 能发 / 47 不发、原因分类），保证"表里有的都能发，发不出的知道为什么"。</li></ul>
+<h3>追问 3: 如果要你重新设计埋点系统，你会怎么设计？</h3>
+<ul><li><strong>上报通道合并</strong>：当前 BtnClickRequest 是复用按钮点击协议承载所有 BI 事件，语义上是"搭车"，存在字段挤占与限流耦合——重新设计会拆出独立 BI 上报协议，支持批量上报与丢失补偿（本地缓存 + 恢复网络后补发）。</li><li><strong>客户端校验</strong>：导出 Lua 时同步生成"参数 schema 校验"（事件参数类型/必填检查），开发期在编辑器 log 警告而非线上静默丢参。</li><li><strong>灰度与开关</strong>：打点开关按渠道/版本下发，可一键关停异常打点。</li><li><strong>私域属性</strong>：用户隐私合规（GDPR/国内个保法）要求打点字段最小化，建议打点字段评审时加合规评审。</li></ul>
+<h3>追问 4: 归因数据会被伪造吗？</h3>
+<p>会。客户端归因结果可以被改机/改包伪造（改机工具可篡改 Adjust SDK 回调），所以<strong>归因数据只能用于运营配置下发依据，不可作为结算/发奖依据</strong>——发奖类逻辑必须以服务器自有证据（设备标识+行为风控）为准。我们项目把归因字段设计为"随登录上报 + 服务器侧校验渠道合法性"，客户端只做透明转发。</p>
+<h3>返场追问: 你们打点有丢失吗？</h3>
+<ul><li>丢失场景：弱网/进程被杀。当前 BtnClickRequest 是即时上报，没有本地缓存补发。</li><li>已有意识：重要事件（登录、支付档位）走协议可靠通道，按钮类事件可容忍少量丢失。</li><li>优化：本地队列 + 定时批量 + 补发（见优化方向）。</li></ul>
+<h2>优化方向（本模块）</h2>
+<ol><li><strong>BI 上报独立协议 + 本地队列补发</strong>：解耦 BtnClickRequest，弱网不丢打点。</li><li><strong>打点 schema 校验前置到开发期</strong>：导出时生成参数 schema，编辑器期警告。</li><li><strong>打点面板工具</strong>：编辑器内实时显示当前会话打点流水，替代"真机+后台过滤"的验证方式。</li><li><strong>归因模拟器增强</strong>：把 PlayerPrefs 模拟链路升级为可模拟"归因延迟/失败/渠道切换"等边界。</li><li><strong>打点覆盖率看板</strong>：base_bi 表 vs 代码 fire 点自动比对，发现"表里有没接线"和"代码里有没上表"。</li><li><strong>token 对照表工具化</strong>：xlsx 手工维护改为从导出表+代码自动生成，消除手工同步误差。</li></ol>
+<h2>面试官潜台词提示</h2>
+<ul><li>问"埋点体系怎么设计"→ 想听<strong>体系</strong>不是流水账：配置驱动、统一通道、口径管理、验证闭环。</li><li>问"为什么这样设计"→ 必答出"打点是运营强依赖，改动主体在数据侧，代码侧只维护接线"。</li><li>问"归因"→ 分层答：归因平台概念 → 我们的三层实现 → 深坑（热更时序）→ 双通路冗余设计。</li><li>问"如果重新设计"→ 讲<strong>通道解耦+可靠性（补发）+ 开发期校验</strong>，展示超越现状的视野。</li></ul>
+</section>
+<section id="ch2">
+<h1>第 2 章 内存泄漏审计与治理</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>我做过两阶段全工程内存泄漏审计：Phase 1 只审 NeoFPS 插件（10 处修复），Phase 2 扩展到 C# 业务层 + Lua 层（19 个文件，11 处确认泄漏），核心发现是 Unity Material 克隆泄漏、静态集合无清理、tween 持有已销毁对象引用。这项工作的价值不在修了多少 bug，而在沉淀了一套可复用的审计方法论。</p></blockquote>
+<h2>高频问题与回答要点</h2>
+<h3>Q1: Unity 有哪些常见内存泄漏类型？你怎么审出来的？</h3>
+<p><strong>回答框架：先分类，再"每类一个亲手修的案例"。</strong></p>
+<p><strong>类型 1：Material/材质克隆泄漏（最高频）</strong></p>
+<ul><li>机制：<code>renderer.material</code> / <code>renderer.materials</code> getter <strong>每次访问都实例化新 Material 实例</strong>（不是缓存返回），Unity 文档明确说会克隆；<code>.material = X</code> setter 同样每次实例化。</li><li>审计手段：grep 模式签名（区分 getter/setter）扫全工程，候选点人工确认。</li><li>亲手修的案例：</li><li><code>GameObjectControlPlayableAsset</code>（Timeline 资产）：foreach 内 5 段连续 <code>.material</code> getter → 缓存到局部变量统一操作，<code>DOFloat</code> 原本跑在孤儿副本上导致动画失效。</li><li><code>FpsSingleGame</code> 假死事件：<code>.materials</code> 数组 getter 拷贝整组副本，<code>SetShaderPassEnabled</code> 作用在副本上——<strong>原描边禁用功能一直无效</strong>。改 <code>sharedMaterials</code> 顺带修复功能 bug。<strong>"泄漏审计顺带挖出功能 bug"是本章面试亮点句</strong>。</li><li><code>MachineGunPlacementDetection</code>：Update 每帧 <code>.material = X</code> setter 持续实例化，旧实例全泄漏 → Awake 缓存 Renderer + sharedMaterial。</li><li>瞄准镜（RenderTextureScopeSRP）：OnDestroy 只销毁 RenderTexture，漏 Destroy 材质实例，瞄准镜高频路径一开一关漏一个。</li><li><strong>深度补充</strong>：为什么引擎要设计成 getter 克隆？Material 是资源级对象，直接改资源会影响所有引用者；克隆是"每 renderer 独立改色"的便利性换来隐性成本——<strong>改实例必须配对销毁，引擎不帮你回收</strong>。</li></ul>
+<p><strong>类型 2：静态集合累积</strong></p>
+<ul><li>机制：static Dictionary/List 只增不减，跨局跨场景永不回收。</li><li>案例：<code>BuffUtils.DicBuffCreated</code> 全代码库无 Clear，跨局累积还<strong>污染抽奖权重计算</strong>（不只是内存问题）→ <code>FpsWorld.OnDestroy</code> 加 Clear。<strong>"内存问题引发正确性问题"是升级版回答</strong>。</li><li>深度补充：Material/Texture/Mesh 是 native 对象，C# 包装壳被 GC 但 native 侧不释放，<strong>托管 GC 管不了 native 侧，必须显式 Destroy</strong>。</li></ul>
+<p><strong>类型 3：tween/委托持有已销毁对象</strong></p>
+<ul><li>DOTween：对象销毁后 tween 仍持有引用。修复方式：缓存克隆材质 + OnUpdate 检测目标销毁后 Kill + Destroy（本项目 DOTween 版本无 SetLink，且持有方是纯 C# 类需完整限定调用）。</li><li>委托链泄漏：事件订阅不退订（UI 层由框架自动清理，纯 C# 层需手动配对——见第 6 章）。</li></ul>
+<p><strong>类型 4：YooAsset 资源句柄泄漏</strong></p>
+<ul><li>引用计数模型：handle（业务侧）→ provider（调度层）→ bundle（包裹层）逐层计数，业务 Load 创建 handle、Release 减计数，减到 0 才触发释放链；任何一环失衡该资源永不释放。</li><li>泄漏形态：Load 不 Release、重复 Load 不复用、场景卸载遗漏场景专属 handle。</li><li>兜底对比：强制卸载（ForceUnloadAllAssets）能兜底但不安全——会引发"使用中资源被卸载"（表现层粉块/白块）。<strong>正确姿势是配对审计而不是依赖强制卸载</strong>。</li></ul>
+<p><strong>类型 5：Lua 层泄漏</strong></p>
+<ul><li>工具：LuaProfiler 观测 Lua.GC 曲线（分场景采样，对比进出场前后差值）。</li><li>模式：闭包捕获、事件订阅不退订、全局表污染。</li><li>修复案例：AnimationSystem tween 持有已销毁 obj，Lua 侧 3 处事件订阅不退订。</li><li>亮点补充：审计期间 LuaProfiler 窗口数据冻结（HookLuaSetup AddComponent 返回 null），做了窗口侧兜底——<strong>审计工具自身可靠性也是审计工作的一部分</strong>。</li></ul>
+<h2>Q2: 审计方法论——"怎么系统地找泄漏"？（本章面试价值最高）</h2>
+<ol><li><strong>范围切割</strong>：按程序集切（插件 → C# 业务 → Lua），每阶段出审计文档（范围/重点/清单/修复提交/变更量），同步团队，不闷头修。</li><li><strong>模式清单驱动</strong>：五类泄漏模式各有代码模式签名，grep 签名扫全工程产生候选点。</li><li><strong>人工确认三问</strong>（对每个候选点）：① 有没有配对清理？② 生命周期谁长谁短？③ 修复会否改变表现（sharedMaterial 影响所有引用者，需逐处确认是"误用克隆"还是"本该独立变体"）。</li><li><strong>风险分级</strong>：HIGH（确认泄漏）/MED（模式匹配未证实）/LOW（demo 代码低风险），HIGH 优先。</li><li><strong>验证</strong>：静态扫描解决"找全"，运行时 Profiler 曲线解决"证实"，<strong>二者不可互替</strong>。</li><li><strong>存档纪律</strong>：审计报告独立存档，修复独立提交，不混业务改动。</li></ol>
+<h3>Q3: sharedMaterial vs material 完整答案（口诀背熟）</h3>
+<table><tr><th>维度</th><th><code>.material</code> getter</th><th><code>.sharedMaterial(s)</code></th></tr><tr><td>返回</td><td>每次访问实例化新实例</td><td>资源本身</td></tr><tr><td>影响面</td><td>只影响该 renderer（实例）</td><td>影响所有引用该材质的 renderer</td></tr><tr><td>内存</td><td>每次克隆</td><td>0 克隆</td></tr><tr><td>场景</td><td>真需要 per-renderer 变体时，<strong>配对 Destroy</strong></td><td>只改共享资源</td></tr></table>
+<p><strong>口诀：默认 shared，独立变体才 material，用了必须配对销毁。</strong></p>
+<h3>Q4: 静态集合泄漏怎么防？</h3>
+<ul><li>机制：static Dictionary/List 只增不减，跨场景累积。</li><li>案例：BuffUtils.DicBuffCreated 只增不减，跨局累积污染抽奖权重 → OnDestroy 加 Clear。</li><li>深度：native 对象 C# 包装壳被 GC 但 native 侧不释放，必须显式 Destroy。</li><li>预防：静态集合必须写 Clear 时机注释（谁负责清、什么时候清）。</li><li>反直觉点：<strong>disable domain reload 时 static 不自动清空——编辑器迭代速度优化反而引入泄漏源</strong>（面试区分度题）。</li></ul>
+<h3>Q5: YooAsset 引用计数怎么工作？泄漏什么样？</h3>
+<ul><li>模型：handle → provider → bundle 逐层引用计数，减到 0 才释放。</li><li>泄漏形态：Load 不 Release、重复 Load 不复用、场景卸载遗漏。</li><li>兜底对比：强制卸载能兜底但不安全（粉块/白块），正确姿势是配对审计而非依赖强制卸载。</li><li>项目事实：有整份 YooAsset handle 泄漏审计文档（按 provider 维度盘点不配对点）。</li></ul>
+<h3>Q6: Lua 层泄漏怎么找？</h3>
+<ul><li>工具：LuaProfiler 分场景采样 Lua.GC 曲线。</li><li>模式：闭包捕获、订阅不退订、全局表污染。</li><li>亮点句：审计工具自身可靠性也是审计工作的一部分（LuaProfiler 兜底修复）。</li></ul>
+<h2>深水区追问</h2>
+<h3>追问 1: 30 处泄漏靠扫描还是 Profiler？</h3>
+<p>静态扫描（模式清单）+ 运行时验证（Profiler 曲线）双轮。静态解决"找全"，运行时解决"证实"。只静态扫会有假阳/假阴（如 foreach 内 .material getter，静态扫出候选，Profiler 证实泄漏速率）。</p>
+<h3>追问 2: 修复会改变表现吗？</h3>
+<p>会——这正是人工确认三问之三。逐处判断"本该独立变体"（保留 material + 配对 Destroy）还是"误用克隆"（改 shared）。例如瞄准镜材质本需要 per-renderer 表现，保留 material + 配对 Destroy 而非一刀切改 shared。</p>
+<h3>追问 3: 这类问题能不能自动化到 CI？</h3>
+<p>两个层次：</p>
+<ol><li><strong>模式扫描进 CI</strong>：五类模式签名做成 CI 规则，新增代码命中 → PR 标记 review 关注点（不 block）。</li><li><strong>运行时守门</strong>：真机常态化内存基线（分机型分场景 PSS/mono heap 双基线），超基线报警。</li></ol>
+<h3>追问 4: 为什么 Unity 的 material getter 要设计成克隆？</h3>
+<p>引擎权衡：Material 是资源级对象，直接改会影响所有引用者。克隆是"per-renderer 独立变体"的便利性换取隐性成本，成本转嫁给开发者配对销毁。<strong>理解设计动机，而不是死记 API 差异</strong>——这是面试深度信号。</p>
+<h2>优化方向（本模块）</h2>
+<ol><li><strong>CI 门禁</strong>：模式签名规则集进 CI，新代码命中泄漏模式 → PR 自动标注。</li><li><strong>内存基线看板</strong>：分机型分场景内存基线自动比对，超基线报警（替代人肉 Profiler 对比）。</li><li><strong>泄漏规则文档化</strong>：五类模式写进 code review checklist。</li><li><strong>YooAsset handle 配对检查工具</strong>：编辑器内可视化 provider 引用计数，Load/Release 不配对实时警告。</li><li><strong>Lua 泄漏工具化</strong>：LuaProfiler 自动采样脚本（进出场自动差值对比，替代人肉采样）。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>五类泄漏模式：Material 克隆 / static 累积 / tween-委托持有 / YooAsset handle / Lua 闭包订阅。</li><li>口诀：默认 shared，独立变体才 material，用了必须配对销毁。</li><li>方法论：静态扫找全 + 运行时证实，人工确认三问，风险分级，报告存档。</li><li>亮点句："内存问题引发正确性问题"（BuffUtils）；"泄漏审计顺带挖出功能 bug"（FpsSingleGame）；"审计工具自身可靠也是审计工作"（LuaProfiler）。</li></ul>
+</section>
+<section id="ch3">
+<h1>第 3 章 死代码扫描与清理</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>我做过全工程死代码扫描与分批清理：Lua 侧识别死文件 71 个、空壳 43 个、生成残留 151 个，C# 侧识别 33 个、疑似 21 个。这项工作的面试价值在<strong>方法论</strong>——动态语言死代码判定是普适难题，"静态扫描找全 + 运行时验证证实"的双轮法可迁移到任何动态语言项目。</p></blockquote>
+<h2>高频问题与回答要点</h2>
+<h3>Q1: 死代码为什么要清？留着不行吗？</h3>
+<p><strong>先立论再讲做法：</strong></p>
+<ul><li><strong>认知成本</strong>：死代码是负资产——读代码的人要花时间判断"这有人调吗"，团队越大越贵。</li><li><strong>误导修改</strong>：改功能时容易改到无人使用的分支，浪费并引入回归风险。</li><li><strong>热更脚本体积</strong>：本项目 Lua 全热更，脚本体积直接进热更包。</li><li><strong>下线残留堆积</strong>：下线玩法（美女/故事系统，69+1 文件删除 + 68 个 lua 大改）若不清，下一个下线玩法继续堆。</li><li><strong>生成物残留</strong>：Luban 导出物中源表已删的死表残留 11 个，误导查表。</li></ul>
+<h3>Q2: Lua 是动态语言，死代码怎么判定？（核心题）</h3>
+<p><strong>先讲难点</strong>：C# 可靠编译器/IDE Find Usages，Lua 不可 100% 静态判定——加载点可以是字符串拼接、配置驱动加载、FSM 状态拼接、UI 名即文件名，任何字符串间接层都会漏判/误判。</p>
+<p><strong>我的方案：动态加载点清单法</strong></p>
+<ol><li><strong>枚举动态加载点清单</strong>（关键创新，面试重点讲这里）：把全工程"通过字符串间接找到文件"的加载点枚举成清单：</li></ol>
+<ul><li>UI：<code>UIManager:OpenUI(name)</code>，UI 名即文件名，还有 FairyGUI 组件名。</li><li>Scene：场景脚本文件名=场景名。</li><li>配置驱动：引导配置引用文件名。</li><li>FSM 状态拼接：<code>"MainBuildingBubbleStates." .. stateName</code> 字符串拼接类名。</li><li>反射（C# 侧）。</li></ul>
+<ol><li><strong>双验证规则</strong>：0 引用 <strong>且</strong> 不在任何动态加载点覆盖范围内 → 判死。</li><li><strong>C# 侧加类名+GUID 双验证</strong>：.meta 的 GUID 可能被 prefab/asset 引用。</li><li><strong>分批清理</strong>：逐批 commit 注明行数与验证方式（如"删除 NamePool.lua（3008 行，全工程 0 引用）"），出现回归可单批回滚。</li><li><strong>扫描脚本可复跑</strong>：dead_code_scan.js / dead_code_classify.js / dead_code_final.json 保留在 .omc/artifacts，2026-09-30 基线可复跑比对。</li></ol>
+<p><strong>TSD 加密环境特有约束</strong>（详见第 9 章，此处一句带过）：bash 裸 grep 看到的是密文，node/git 看明文——<strong>扫描脚本必须用 node 写，"工具选型受环境约束"本身就是面试素材</strong>。</p>
+<h3>Q3: 怎么防误删？</h3>
+<ul><li><strong>双验证</strong>：0 引用 + 动态加载点清单覆盖；C# 加类名+GUID 双验证。</li><li><strong>分批清理</strong>：逐批 commit 注明行数与验证方式，回归可单批回滚。</li><li><strong>回滚预案</strong>：靠 git 回滚，不靠临时备份（备份会漂移，git 保真）。</li><li><strong>生成物不手改</strong>：Luban 导出物只经导出管线变更，防"源表删了生成物残留"误导。</li><li><strong>删前复跑</strong>：删除前复跑扫描并比对基线。</li></ul>
+<h3>Q4: 清理收益怎么量化？</h3>
+<ul><li><strong>脚本体积</strong>：Lua 全热更，脚本体积直接进热更包，清理=直接收益。</li><li><strong>认知成本</strong>：71 个 0 引用文件 = 71 次"这有人调吗"的判断成本清零。</li><li><strong>生成残留</strong>：11 个死表残留清掉后查表不误导。</li><li><strong>大文件案例</strong>：NamePool.lua 3008 行 0 引用、promise_spec 1620 行框架测试 0 引用、FairyBook 610 行 0 引用。</li><li><strong>严谨句式</strong>：<strong>"识别 ≠ 已清理"</strong>——C# 识别 33 + 疑似 21 是识别数，不是全部已清数。</li></ul>
+<h3>Q5: 怎么防"清了又长"？</h3>
+<ul><li><strong>源头治理</strong>：玩法下线时同步清代码（美女/故事系统下线同步改 68 个 lua）。</li><li><strong>保留兼容层</strong>：下线时保留必要兼容常量（GIFT_SHOP_BUILD_BEAUTY、EXPLORE_PARAMETER_FUNGUS），兼容层也要有"何时可删"的判断。</li><li><strong>定期大扫除模式</strong>：当前是人工定期扫，未进 CI——如实承认，引出优化方向。</li></ul>
+<h2>深水区追问</h2>
+<h3>追问 1: 静态判定会不会有假阴性？</h3>
+<p>会。字符串间接层的存在使静态判定必然保守（宁可漏判不误删）。三重对策：动态加载点清单尽量穷举、扫描脚本可复跑（新代码进来后重扫）、删后观察期（分批提交本身就是观察期）。</p>
+<h3>追问 2: 为什么不直接用现成工具？</h3>
+<ul><li>Lua 有 luacheck（本项目在用）但只查未定义全局/未使用局部，不查文件级 0 引用。</li><li>商业工具不覆盖"配置驱动加载"这种项目自定义间接层。</li><li>自研扫描器一天写完，且<strong>加载点清单是项目知识，工具复用的是知识而非代码</strong>。</li></ul>
+<h3>追问 3: C# 死代码为什么不全部清理？</h3>
+<ul><li>疑似项 21 个涉及反射调用可能（C# 反射按类型名字符串可命中任何类），需要逐个运行时验证，风险收益比不划算。</li><li>如实回答"识别了但未全清"，展示对风险收益比的判断。</li></ul>
+<h2>优化方向（本模块）</h2>
+<ol><li><strong>扫描进 CI</strong>：每次合入后自动重扫，新增死代码 PR 阶段报警（替代"定期大扫除"）。</li><li><strong>动态加载点清单文档化</strong>：从"我脑子里的清单"变成仓库内文档，团队可维护。</li><li><strong>配置侧联扫</strong>：把配置表引用（引导配置/FSM 配置）纳入扫描输入，减少人工核对。</li><li><strong>清理自动化</strong>：0 引用文件自动生成删除 PR，人工只做确认。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>难点：动态语言死代码判定不可 100% 静态——字符串间接层（UI 名/场景名/FSM 拼接/配置引用）。</li><li>方案：动态加载点清单法 + 双验证 + 分批清理 + 脚本可复跑。</li><li>基线数字：Lua 死 71 + 空 43 + 生成残留 151；C# 死 33 + 疑似 21。</li><li>亮点句 1："工具选型受环境约束"（TSD 加密下 bash grep 看密文、node 看明文）。</li><li>亮点句 2："识别 ≠ 已清理"——严谨性句式。</li></ul>
+</section>
+<section id="ch4">
+<h1>第 4 章 引导系统（Guide System）</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>FPS 玩法的引导系统横跨 Lua 业务层与 C# 战斗层，是"状态机 + 时序 + 表现联动"的复杂链路。我做过：重登悬空引用崩溃修复、双图并跑刷怪超量修复、武器锁三层机制梳理、教学打点口径问题定位，并沉淀了引导调试 skill（debug-guide）。</p></blockquote>
+<h2>高频问题与回答要点</h2>
+<h3>Q1: 介绍一下你们的引导系统设计</h3>
+<ul><li><strong>配置驱动</strong>：引导步骤配置在表，可配先后与分支（引导 ID 段 900001-90008、800002 等）。</li><li><strong>触发链</strong>：<code>CheckTriggerGuide → IsTriggerStop → IsTriggerComplete → Run → setSkipIndex → Finish</code>。改引导前必须走读完整链路，不凭局部合理就动手（项目明文规则）。</li><li><strong>分层</strong>：业务引导（UI 层）与 FPS 引导（战斗层）分开。FPS 引导节点可配运镜/开火锁/视频播放等表现节点。</li><li><strong>FPS 关卡图</strong>：MissionGraph 资产驱动波次与运镜节点（GuideLevel99_x 系列）。</li><li><strong>重登恢复是硬指标</strong>：断线重连后引导进度保持。</li></ul>
+<h3>Q2: 讲一个你修过的引导 bug（故事 1：重登悬空引用崩溃）</h3>
+<p><strong>STAR：</strong></p>
+<ul><li><strong>S</strong>：线上崩溃——重登时序下视频对象已被销毁仍调 <code>CloseVideoObject</code>，NRE。</li><li><strong>根因链三层叠加</strong>：</li></ul>
+<ol><li>Lua VM 跨 Restart 存活，首登创建的视频对象缓存不失效；</li><li>CloseAllUI 关闭 UI 时跳过 UIGuide（不在常规关闭列表）；</li><li>videos 缓存表持有已销毁引擎对象 → CloseVideoObject NRE。</li></ol>
+<ul><li><strong>A</strong>：CloseVideoObject 补 null 守卫（d8743d47）。</li><li><strong>R</strong>：泛化为测试维度：任何 UI 持有引擎对象缓存的模块都要过"重登后缓存是否失效"检查。<strong>"进度恢复了但对象缓存没重建"是重登类 bug 的通用根因模式</strong>。</li></ul>
+<h3>Q3: 讲一个复杂 bug（故事 2：GuideLevel99_5 双图并跑）</h3>
+<p><strong>STAR：</strong></p>
+<ul><li><strong>S</strong>：99_5 关卡刷怪数量是配置值的两倍，且只有它有问题。</li><li><strong>T</strong>：回答"为什么只有它"。</li><li><strong>A</strong>：单差异点排查法——逐项对比 99_5 与其他关卡的配置差异，发现只有 99_5 配了 <code>earlyInitTime=100</code>；提前初始化与正常初始化在 InitAsync 重入，MissionGraph 被加载两次，波次系统驱动两遍 → 刷怪×2。</li><li><strong>修复</strong>：InitAsync 同名图已完成幂等跳过 + EarlyInit 延迟回调守卫（326e7d50be）。</li><li><strong>R</strong>：泛化句——任何"提前初始化"钩子都要考虑与正常初始化的重入竞争。<strong>"为什么只有它"→ 差异点穷举</strong>是通用 debug 手法。</li></ul>
+<h3>Q4: FPS 引导的武器锁机制（背熟）</h3>
+<ul><li><strong>三层锁</strong>：角色锁（视野/移动）— 武器锁（weapon）— 开火锁（fire），恢复必须逐层对应，不能越权恢复。</li><li><strong>反直觉 API</strong>：无参 <code>FpsEventLockCharacter</code> 事件 = "全解锁（含 weapon）"，不是"上锁"。</li><li><strong>99_2 案例</strong>：运镜收尾节点越权全解锁含武器 → 收尾改只恢复视野/移动（1221de8），开火引导节点首位补全解锁（c19ab54）。两个节点都在 MissionGraph YAML 资产里改——折行拆断带空格 indexOf、反向括号行走、$id 是节点最后键（向后找 _actions 会插错节点）、改完回读校验、ab 需重打包。</li><li><strong>泛化句</strong>：恢复动作必须与锁定动作逐层对应，不能越权恢复。</li></ul>
+<h3>Q5: 引导配置错了怎么定位？（打点 39 案例）</h3>
+<ul><li>教学完成打点（打点 39）一直发不出 → 打点触发依赖 <code>IsTriggerComplete</code>，配置 Config431 指向不存在的引导 ID 201104 → 判定恒 false。</li><li><strong>结论句</strong>："下游 token 配对了也没用，配置是源头"。跨端口径问题不越权修，挂起等口径方（策划/服务端）确认。</li></ul>
+<h2>深水区追问</h2>
+<h3>追问 1: 重登恢复怎么做？</h3>
+<ul><li>进度持久化在服务器侧（跨设备），客户端会话内使用。冷启动从存档读、relogin 从 VM 存续状态读，<strong>双路径必须等价</strong>。</li><li>洞见：进度恢复 ≠ 对象重建，两条恢复路径等价性是设计要点。</li></ul>
+<h3>追问 2: 引导节点为什么用 MissionGraph 资产而不是 Lua 写死？</h3>
+<ul><li>收益在策划侧：波次/运镜/显隐策划可配。</li><li>代价转移给程序：YAML 手工编辑坑多。<strong>"配置驱动的代价转移给了程序"</strong>——所以才有后文的编辑器工具优化方向。</li></ul>
+<h3>追问 3: 引导调试怎么提效？</h3>
+<ul><li>沉淀 debug-guide skill：链路走读、配置核对、触发链验证，调试流程标准化。</li></ul>
+<h2>优化方向（本模块）</h2>
+<ol><li>MissionGraph 可视化编辑器（消除手工 YAML 编辑）。</li><li>编辑器内引导状态 inspection 工具（当前步骤/锁状态/进度实时显示）。</li><li>开发期引导快进/跳步/回放。</li><li>引导 ID 引用完整性校验进导表管线（杜绝 Config431→不存在 ID 问题）。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>触发链六步 + 双路径等价性 + 三层锁。</li><li>两个 STAR：重登悬空引用（根因链三层叠加）、99_5 双图并跑（单差异点排查法）。</li><li>亮点句："进度恢复但对象缓存没重建"是重登类 bug 的通用根因模式；"配置驱动的代价转移给了程序"。</li></ul>
+</section>
+<section id="ch5">
+<h1>第 5 章 FPS 战斗表现与 AI</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>FPS 战斗层的表现与 AI 问题治理：武器相机显隐、AOE 残留清理、AI 走位卡死快速失败、AI 冻结工具。面试价值：表现与逻辑分离的工程意识。</p></blockquote>
+<h2>高频问题与回答要点</h2>
+<h3>Q1: WeaponCamera 显隐（主故事，STAR）</h3>
+<ul><li><strong>S</strong>：入场下落运镜中枪械悬浮在画面上（修复提交 275d46a7e9 / 5a6f20f04b）。</li><li><strong>A</strong>：角色层级找不到 WeaponCamera → 全场景 FindObjectsOfType 查引用，发现它挂在全局相机 rig（PlayerCameraRoot/PlayerCameraSpring）下，不在角色层级。第一坑：只设 enabled=false 无效——FirstPersonCamera 启停 setter 会批量点亮同 rig 相机，必须 GO 级 SetActive(false)。恢复锚点=关卡图任务显隐事件（OnTaskShowEvent）事件驱动，不写死延迟。主相机 culling mask 也含武器位，表现改动要查 mask 链路。</li><li><strong>R</strong>：泛化句——引用查找半径决定正确性；恢复锚点事件驱动而非固定延迟。</li></ul>
+<h3>Q2: AOE 残留清理（7f4d51d60d）</h3>
+<ul><li>关卡结束统一清理 AOE 表现，修复直接退出后鳄鱼技能 vortex 残留在升旗 timeline。</li><li>泛化句：表现资源必须与玩法状态联动清理。</li></ul>
+<h3>Q3: AI 走位卡死快速失败（a3bf1c188c）</h3>
+<ul><li>AI 走位节点（Act_MoveToPosition）可能永不到达目标点 → 卡死。修复：加快速失败（超时/失败态）。</li><li>泛化句：卡死类问题的通用解法是快速失败（fail-fast）+ 可观测日志，而不是无限等待。</li></ul>
+<h3>Q4: AI 冻结工具与待复验项的诚实答法</h3>
+<ul><li>AI 冻结工具（调试用，可复制先例到 FpsSingleGame）：面试如被问到未完成工作，<strong>如实说明状态</strong>——"已实现、待编辑器复验"，并说清剩余步骤，不夸大完成度。</li></ul>
+<h2>深水区追问</h2>
+<h3>追问 1: 相机管理架构</h3>
+<ul><li>全局相机 rig 多相机分层（主相机/武器相机/瞄准镜），显隐联动靠 GO 级 SetActive 与事件驱动锚点，不用固定延迟。</li></ul>
+<h3>追问 2: 卡死类问题怎么系统性防？</h3>
+<ul><li>卡死 = "等待一个可能永不到来的条件"。通用解法：快速失败 + 超时 + 可观测日志。AI 行为树节点超时快速失败是先例。</li></ul>
+<h2>优化方向（本模块）</h2>
+<ol><li>AI 行为节点超时框架化（所有 Act 节点统一超时与失败态）。</li><li>表现资源生命周期联动清理框架（退出/跳过路径也清 AOE/timeline）。</li><li>AI 冻结工具产品化进编辑器面板。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>引用查找半径决定正确性（全场景 FindObjectsOfType）。</li><li>GO 级 SetActive vs enabled 的区别（setter 批量点亮）。</li><li>事件驱动恢复锚点 vs 固定延迟。</li><li>卡死 → 快速失败。</li></ul>
+</section>
+<section id="ch6">
+<h1>第 6 章 UI 框架与 FairyGUI</h1>
+<h2>模块背景（开场一句话）</h2>
+<blockquote><p>UI 层问题治理：响应式绑定失效、合批缓存、对象池回收、网络遮罩体验。面试价值：对响应式数据绑定框架的失效模式有体系化认知。</p></blockquote>
+<h2>Q1: 响应式绑定读旧值（主故事）</h2>
+<ul><li><strong>现象</strong>：全局状态切换类 bug，UI 显示非最新数据。</li><li><strong>根因两层</strong>：① <code>Refresh</code> 是死标志（update=true 无消费者，看似刷新了实际没执行）；② VM.hashset 绑定旧表引用，<code>SyncXxx</code> 整体换表后绑定链失效，UI 读旧数据。</li><li><strong>修复</strong>：在同步层（DataMediator SyncXxx）fire 事件，UI 订阅同步层事件而非依赖绑定链。</li><li><strong>实例</strong>：改装车主界面战力与额外加成不刷新（1a63f142a5 / d207e95）。</li><li><strong>泛化句</strong>："数据换了引用，绑定还指旧引用"是响应式框架的经典失效模式；"Refresh 是死标志——看似刷新了实际没执行"。</li></ul>
+<h2>Q2: TimerSystem.Register 签名坑</h2>
+<ul><li>签名 <code>Register(name, 延时秒, fn)</code>；裸 <code>(0.2, fn)</code> <strong>静默不执行</strong>——不报错不执行，只有"功能没发生"，最危险。</li><li>规则：跨 UI 生命周期的延时用全局 Timer + 带 name；UI 内延时用 self:StartTimer（自动清理）。UI 关后弹窗仍要显示的场景必须走全局 Timer。</li><li><strong>泛化句</strong>：静默失败是最危险的失败模式，只能靠测试兜底。</li></ul>
+<h2>Q3: FairyGUI 合批缓存（invalidateBatchingEveryFrame）</h2>
+<ul><li>真机上 alpha 动效期间合批缓存导致 StateGroup 子内容不显示——编辑器看不出来，真机才复现。</li><li>修复：动效期间开启 invalidateBatchingEveryFrame（ba103c5e22）。</li><li><strong>泛化句</strong>：编辑器与真机渲染差异类问题的排查意识。</li></ul>
+<h2>Q4: 对象池回收拦截漏洞（62ed6a3151）</h2>
+<ul><li>GObjectPool 回收路径存在拦截漏洞，修复后回收路径与其他路径行为一致。</li><li><strong>泛化句</strong>：对象池的坑都在"回收路径"，不在"取用路径"。</li></ul>
+<h2>Q5: 网络遮罩体验优化（cda5e5fa4c）</h2>
+<ul><li>联盟主界面为顶层 UI 时，联盟领地/礼物请求不再弹网络遮罩 UINetWaiting。</li><li><strong>泛化句</strong>：体验类需求本质是"遮罩的必要性分级"，按 UI 层级与操作上下文分级弹遮罩。</li></ul>
+<h2>优化方向（本模块）</h2>
+<ol><li>响应式绑定失效静态检查（绑定链 lint）。</li><li>Timer 签名静态检查进 luacheck 规则（裸两参调用报警）。</li><li>真机渲染差异问题 checklist（动效/合批/mask 链路）。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>响应式失效模式："数据换了引用，绑定还指旧引用"；Refresh 死标志。</li><li>Timer 裸两参 = 静默失败，最危险的失败模式。</li><li>真机渲染差异：合批缓存问题编辑器看不到。</li><li>对象池的坑在回收路径。</li></ul>
+</section>
+<section id="ch7">
+<h1>第 7 章 渠道 SDK 与登录链路</h1>
+<h2>模块背景</h2>
+<blockquote><p>多渠道包体系：游龙渠道账号隔离、审核包屏蔽逻辑、FCM 通知崩溃修复、服务器列表状态显示、登录 UI 流程优化。本章面试价值：渠道化改造的难点不在"加开关"，而在读写侧一致性与盲区识别。</p></blockquote>
+<h2>Q1: 游龙账号隔离（主故事）</h2>
+<ul><li><strong>需求</strong>：同一设备上，渠道包与主包账号相互隔离，避免账号串用。</li><li><strong>方案</strong>：Passport/DeviceId 的<strong>读侧</strong>统一加 <code>_YL</code> 后缀（commit 08209006af）。</li><li><strong>盲区</strong>：读侧统一后，写侧（邮箱注册/绑定/切换/解绑 4 处 HTTP 出口）未过 ApplyChannelSuffix，导致账号凭据读写不一致。补盲区提交后因引入新问题又 revert（4aa20277ff）——工程判断："风险收益比不划算时先恢复稳定，问题另开任务"。</li><li><strong>特例先行</strong>：游客账号（<code>#_#visitor</code> 结尾）不追加后缀（c7f27ef0fd）——隔离规则先枚举特例再定通则，避免先写通则再打补丁。</li><li><strong>另一坑</strong>：该后缀匹配用的 Lua pattern 不支持可选组量词（如 <code>(?:...)?</code>），匹配逻辑要绕开写。</li></ul>
+<p><strong>泛化句</strong>：渠道化改造的本质是"读写侧一致性工程"，加开关只是第一步。</p>
+<h2>Q2: FCM 通知崩溃修复</h2>
+<ul><li><strong>现象</strong>：Android 8/9 设备收到 FCM 通知即 <code>NoSuchMethodError</code> 崩溃。</li><li><strong>定位</strong>：androidx.core 版本过低。</li><li><strong>修复演进两步</strong>：先强制 1.9.0 修崩溃（3f3967988f），后抬到 1.13.1 满足 compileSdk&gt;=34/targetSdk=36（64cf3f8991）——版本对齐是持续过程，不是一次性。</li></ul>
+<p><strong>泛化句</strong>：安卓依赖冲突排查走 gradle 依赖树，修复要考虑 targetSdk 演进。</p>
+<h2>Q3: 服务器列表状态显示</h2>
+<ul><li>新增服务器状态图标（0 未开放 / 1 拥挤 / 2 正常 / 3 推荐+角标 / 4 爆满），爆满服禁止进入并弹提示。</li><li>文案走本地化 key（<code>SERVER_COMMON_STATUS_TEXT_x</code>）。</li></ul>
+<p><strong>泛化句</strong>：状态枚举驱动 UI，禁止文案硬编码，统一走 <code>_L("KEY")</code>。</p>
+<h2>Q4: 审核包与渠道开关</h2>
+<ul><li><strong>审核包屏蔽</strong>：审核期间不判断宝石数量（审核合规要求）。</li><li><strong>ANTI_ADDICTION 渠道</strong>：UILoading 隐藏 GmBtn/AccountBtn，屏蔽账号与第三方登录入口。</li></ul>
+<p><strong>泛化句</strong>：审核包是"临时形态"，屏蔽点要集中管理，避免散落 hard-code。</p>
+<h2>深水区追问</h2>
+<ol><li><strong>账号隔离为什么写侧会漏？</strong></li></ol>
+<p>答：读侧改动点集中（Passport 读属性一处收口），写侧出口分散（多处 HTTP 请求构造点），改动半径不对称——集中/分散不对称是盲区产生的结构性原因。</p>
+<ol><li><strong>revert 后问题怎么收尾？</strong></li></ol>
+<p>答：另开任务，与渠道方确认影响范围后再补，不在主线夹带高风险改动。</p>
+<h2>优化方向</h2>
+<ol><li>渠道屏蔽点集中配置化（渠道能力矩阵表驱动，按渠道×能力查表）。</li><li>账号后缀读写侧一致性测试用例（注册→读取互验、绑定→读取互验）。</li><li>gradle 依赖审计自动化（依赖树 diff 报告，CI 阶段拦截版本漂移）。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>渠道化 = 读写侧一致性工程；集中/分散不对称产生盲区。</li><li>特例先行：先枚举特例（游客账号）再定通则。</li><li>revert 也是工程决策，不丢人，关键是收尾路径。</li></ul>
+</section>
+<section id="ch8">
+<h1>第 8 章 BGM 与音效系统</h1>
+<h2>模块背景</h2>
+<p>主城 BGM 状态机治理与音效接入规范化。表现系统（音乐/音效）与业务状态的联动看似只是"细节打磨"，实则考验通用设计能力与工程习惯——面试官常用这类话题考察你是否能把个例需求沉淀为可复用的机制。</p>
+<h2>Q1: CityBGMPlugin — 演出类 UI 与 BGM 互斥</h2>
+<p>需求最初是个例：某个 UI 打开时停主城 BGM，关闭后恢复。随后同类需求反复出现（别墅升级奖励弹窗等），我们在第三次出现之前把它抽成了通用插件 CityBGMPlugin：演出类 UI 打开时静音，关闭时恢复主城 BGM；同时提取 SceneManager.StopCityBGM 作为统一停播入口。</p>
+<p>这一步的关键收益是消除了"每个 UI 自己停"的不一致——原先散落在各处的停播调用，行为细节各有偏差，统一入口后互斥规则只有一份实现。</p>
+<p><strong>泛化句：同一需求出现第三次之前，就该抽成通用能力。一次需求=实现，两次=抽象候选，三次=抽象。</strong></p>
+<h2>Q2: 陨石危机 BGM 卡压力音乐</h2>
+<p><strong>现象</strong>：陨石危机活动 UI 关闭后，压力音乐一直不切回祥和主城 BGM，直到重登才恢复。</p>
+<p><strong>根因</strong>：BGM 切换判定依赖服务器回推的 RewardCount=5，但该会话服务器不回推这条消息，判定恒不成立，压力状态永远无法结束。</p>
+<p><strong>修复分三层</strong>：第 5 次攻击时 SetFinalState 写入本地终态标记 meteorFinishedLocally；IsPressureEventGoing / IsMeteorCrisisFinished 增加兜底判定，不单纯依赖服务器状态；关闭 UI 时 TryShowRatingIfFinished 补一次 fire，保证收尾事件不丢。</p>
+<p>后续又做了去硬编码：攻击次数、终态判定、动画名、领满判定统一改为读 base_pressure_main 的奖励数上限（#ARRAYINT_REWARD），并加 config 判空早退，配置缺失时不走异常路径。</p>
+<p><strong>泛化句：依赖服务器回推的状态，要用本地终态标记兜底——服务器状态不可信时，客户端要能自洽收敛。</strong></p>
+<h2>Q3: 开场 CG 与 BGM 时序</h2>
+<p><strong>现象</strong>：新号开场 CG（svs.mp4）还没播完，主城 BGM 已经响起，视频音乐被顶掉，首因体验很差。</p>
+<p><strong>修复</strong>：loading 完成后主城 BGM 挂起，等 CG 播完或被跳过后，由 UIGuideVideo 负责恢复；同时用 IsTriggerComplete(800002) 做兜底放行，让跳过开场的老手账号不会被永久卡在静音状态。</p>
+<p><strong>泛化句：媒体播放（视频/音乐）的冲突要走统一的挂起-恢复协议，不能各播各的。</strong></p>
+<h2>Q4: 音效接入规范化（sfx-creator skill）</h2>
+<p>音效接入是高频重复工作，我们把它沉淀为 skill：文件入库规范 → config.toml.txt 注册 event → Lua 侧 AudioSystem:PostEvent 接线 → 时长判断与 mode 选择。资源收集音效另有专用流程 collect-audio-creator（含 MediatorItem 的 resourceAudio 映射）。</p>
+<p><strong>实例</strong>：红包打开音效 RedEnvelopeOpen event，在四类红包领取成功（GET_RED_ENVELOP_REWARD_RESULT）处单点触发，改动集中、回归面小。</p>
+<p>几个值得讲的工程细节：</p>
+<ul><li>音效防连点：高频点击 UI 时避免同帧叠加播放。</li><li>批量替换 33 个同名音效时，meta 中关闭 forceToMono 和 normalize，保留原始立体声与响度，避免保真度损失。</li><li>快速战斗胜利音效曾改为"等服务器回调再播"，后来 revert 改回立即播。<strong>时序与体验的权衡没有绝对正确，验证方式决定选择</strong>——能验证什么，就按什么标准取舍。</li></ul>
+<h2>深水区追问</h2>
+<p><strong>1. BGM 状态机怎么设计？</strong></p>
+<p>单一 BGM 所有权 + 挂起-恢复协议 + 本地终态兜底。核心原则是谁占用谁释放：任何时刻只有一个 BGM 持有者，挂起方退出时恢复上一个状态，服务器状态缺失时由本地标记收敛。</p>
+<p><strong>2. 为什么不用 Wwise/FMOD 类中间件？</strong></p>
+<p>本项目用事件驱动（PostEvent），规范化点在"注册-接线-验证"三步，这套流程与具体中间件无关；换中间件只需要替换底层播放实现，接入规范不变。</p>
+<h2>优化方向</h2>
+<ol><li>BGM 状态可视化：编辑器内实时显示当前占用者与挂起栈，排查音乐不切换类问题不再靠翻日志。</li><li>音效注册自动化：文件入库时自动生成 event 注册与映射，消灭手工注册漏配。</li><li>音效回归清单自动化：版本出包前跑一遍音效 spot-check 清单，防止替换/重命名引发的静默丢失。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>三次法则：同一需求第三次出现前抽成通用能力（CityBGMPlugin）。</li><li>本地终态标记兜底：服务器状态不可信时，客户端要能自洽收敛。</li><li>媒体播放统一挂起-恢复协议，谁占用谁释放。</li></ul>
+</section>
+<section id="ch9">
+<h1>第 9 章 工程工具链与环境适配</h1>
+<h2>模块背景</h2>
+<p>企业级加密工程环境下的开发效率体系建设：透明加密适配、LSP/MCP 配置治理、自动化 skill 矩阵。面试价值：在不利的工程环境下（企业加密/DLP）依然把个人与团队效率工具化，展示"环境适应力 + 工具化思维"。</p>
+<h2>Q1: TSD 透明加密环境的开发适配（本章主故事）</h2>
+<ul><li>环境特征：企业透明加密，整树磁盘密文；按进程白名单解密——node/git/claude 看明文，PowerShell/cmd 看密文；解密后过一段时间复密。</li><li>连锁影响与对策：</li></ul>
+<ol><li>文件编辑：Bash sed -i 会把整文件 CRLF→LF 破坏行尾；awk/node 非白名单进程写出即密文——<strong>只用 Edit 工具改文件，改完 numstat 验证</strong>；恢复靠 git 不靠 /tmp 备份。</li><li>搜索：bash 裸 grep 看密文——搜索必须走白名单内工具（Grep 工具带目录+glob，或 git/node 侧读取）。</li><li>LSP：加密 lua 上 LSP 无效，且曾把 LSP 服务器误当 MCP 注册（tools/list 返回 -32601）——配置治理：已删 MCP 条目，走编辑器内置 LSP。</li><li>git push 外网被拦（curl 55）：走 GitHub Git Data API 兜底通道（push_via_api.js），用 API 建 commit/tree/ref 绕过网络层拦截。</li></ol>
+<ul><li>泛化句：<strong>"环境约束决定工具选型"</strong>——加密环境不是借口，是约束输入，工具链围绕约束重新设计。</li></ul>
+<h2>Q2: 自动化 skill 矩阵</h2>
+<ul><li>dailySummary/weeklyReport：git 提交统计 → 按模块汇总 → 自动提交内网日报/周报系统，每天固定十分钟的人工流程变成一条命令。</li><li>sfx-creator/collect-audio-creator：音效接入与资源收集音效的规范流程 skill——入库、config 注册、Lua 接线、时长判断一步不漏。</li><li>UIDev：UI 开发全流程（FairyGUI XML 分析、协议对接、配置查询、Lua 编写），新人按 skill 走就能产出合格 UI。</li><li>泛化句：<strong>skill 化的本质是把"老手的隐性流程"变成"团队的显性资产"</strong>——人离职流程不丢，新人人手一个老手。</li></ul>
+<h2>Q3: 交互式配置生成工具（genLua/genLuaUI）</h2>
+<ul><li>背景：日常高频操作是"查配置表→生成 Lua 访问代码"，原工具要求输入精确表名，查错表名就要重来。</li><li>改造：配置表 Lua 生成工具支持模糊匹配/精确直生成；genLuaUI 增加实时补全、回车补全公共前缀、历史记录、个位数候选时直接显示表名，回车一次直达。</li><li>泛化句：高频小操作的工具化收益是"每次省 10 秒 × 每天 50 次"的复利，且体验改善会反向促进工具使用率。</li></ul>
+<h2>深水区追问</h2>
+<ol><li>加密环境怎么保证不破坏文件？答：白名单进程读写 + 写后验证（numstat 核对增删行数/回读校验），恢复一律走 git，从不信任本地备份。</li><li>LSP 为什么无效？答：TSD 白名单外的进程读文件是密文，LSP 服务器读到的就是乱码——解法是让白名单内进程做语言服务，或接受无效并改用文本工具。</li><li>为什么不申请把更多进程加白？答：加密策略是公司安全边界，个人不碰；正确姿势是在边界内重新设计工具链，而不是绕过边界。</li></ol>
+<h2>优化方向（本模块）</h2>
+<ol><li>加密环境适配文档化（新同事 onboarding 成本从数天降到半天）。</li><li>skill 矩阵扩展：code review checklist skill、打包状态查询 skill。</li><li>白名单进程检测脚本（工具启动前自检是否白名单内，避免写出密文）。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>环境约束决定工具选型；写后验证；恢复靠 git。</li><li>skill 化 = 隐性流程显性化。</li><li>LSP vs MCP 的配置区分（tools/list -32601 是误配信号）。</li></ul>
+</section>
+<section id="ch10">
+<h1>第 10 章 通用 Unity/Lua 题的项目化回答</h1>
+<blockquote><p>面试官问通用基础题时，用项目经历把答案"落地"，区分度立刻不同。本章给每类通用题一个"项目化锚点"。</p></blockquote>
+<h2>Q1: GC 优化怎么做过？</h2>
+<ul><li>项目锚点：性能规范——VM.hashset/VM.array 用于大集合、对象池复用+Clear()、循环内禁字符串拼接用 StringBuilder、避免 LINQ/foreach（旧 Unity）。</li><li>项目化答法：不只背"GC 原理"，而是说"我们项目的性能规范第一条就是……，落地案例是改装车界面防连点+对象池"。</li><li>补充：Lua 侧 GC 压力靠 LuaProfiler 分场景采样监控（见第 2 章）。</li></ul>
+<h2>Q2: 热更原理？HybridCLR 和 XLua 的区别？</h2>
+<ul><li>锚点：本项目 C# 用 HybridCLR、逻辑热更用 XLua。</li><li>一句话区别：<strong>HybridCLR 是 C# 解释执行方案（补充元数据+解释器），XLua 是 Lua 绑定方案</strong>——前者热更 C# 代码本身，后者热更 Lua 脚本。</li><li>项目化深挖点：双热更体系的<strong>时序问题</strong>是真实踩过的坑——桥接方法在热更程序集，任何依赖它的调用必须等 LoadDll 完成后（_G.Root.DllEntry 门禁，见第 1 章）。</li><li>泛化句：热更体系面试的核心不是背原理，是讲"热更时序"这个工程难点。</li></ul>
+<h2>Q3: Update 里该做什么/不该做什么？</h2>
+<ul><li>锚点：本项目 ECS/System 架构，System 生命周期由框架驱动，控制器框架缓存，不手动缓存。</li><li>项目化答法：讲"事件驱动替代轮询"的实际案例——BGM 切换靠事件/终态标记而非每帧查询（第 8 章）。</li></ul>
+<h2>Q4: xpcall 保护？</h2>
+<ul><li>锚点：XLua 下 C# 调 Lua 必须有 xpcall 保护，错误回传 C# 侧日志；本项目调试规范"追踪完整调用链再提修复"。</li><li>泛化句：xpcall 是"错误可观测性"的一部分，不只是防崩。</li></ul>
+<h2>Q5: FairyGUI 和 UGUI 的区别？</h2>
+<ul><li>锚点：本项目 FairyGUI + GObjectPool。</li><li>要点：FairyGUI 编辑器驱动+GObject 池化；合批机制差异（invalidateBatchingEveryFrame 案例，第 6 章）；Prefab 坐标转换用 FairyGUI API（LocalToGlobal/LocalToRoot）而非 Unity API。</li><li>泛化句：UI 框架选型的面试答案是"讲清失效模式"而不是"讲清优点"。</li></ul>
+<h2>Q6: 资源管理怎么做？</h2>
+<ul><li>锚点：YooAssets 引用计数（handle→provider→bundle 释放链）+ Luban 配置表体系（Excel→导出→Configs.base_xxx.Hash[]/INT_GROUP.In(x).Rows 查询）。</li><li>项目化答法：引用计数失衡的泄漏形态与配对审计（第 2 章）+ 配置表"导出物只读"纪律。</li></ul>
+<h2>深水区追问</h2>
+<ol><li>"你们 GC 优化收益多少？"——如实答：有性能规范与 Profiler 验证流程，无精确收益数字；诚实比编数字安全。</li><li>"HybridCLR 补充元数据的原理？"——AOT 泛型/反射调用缺失元数据由解释器补齐；答出"易变代码进热更程序集，AOT 侧只留稳定壳"的工程经验。</li></ol>
+<h2>通用答法模板</h2>
+<ol><li>定义（一句）→ 2. 项目锚点（我们怎么做/踩过什么坑）→ 3. 泛化句（可迁移的方法论）。三段式，30 秒内完成。</li></ol>
+<h2>本章核心记忆点</h2>
+<ul><li>通用题+项目锚点=区分度。</li><li>双热更体系的时序门禁是最有项目味的深挖点。</li><li>诚实答"没有精确数字"优于编造。</li></ul>
+</section>
+<section id="ch11">
+<h1>第 11 章 优化方向汇总（跨模块路线图）</h1>
+<blockquote><p>各章优化方向的汇总与优先级排序。面试收尾问"接下来想做什么"时，从这里取材——<strong>优化方向要能说出"为什么排这个优先级"</strong>。</p></blockquote>
+<h2>优先级排序原则</h2>
+<ol><li><strong>事故驱动优先</strong>：曾引发线上问题的方向优先（重登类时序、内存基线）。</li><li><strong>复利优先</strong>：工具化/skill 化收益随时间累积（扫描 CI 化、日报自动化）。</li><li><strong>低耦合优先</strong>：不依赖跨团队协调的先做。</li></ol>
+<h2>一、质量防线类（事故驱动）</h2>
+<ol><li><strong>内存基线看板</strong>：分机型分场景 PSS/mono heap 双基线自动比对，超基线报警（第 2 章）。</li><li><strong>死代码扫描 CI 化</strong>：合入后自动重扫，新增死代码 PR 阶段报警（第 3 章）。</li><li><strong>导表校验</strong>：引导 ID 引用完整性校验进导表管线（第 4 章 Config431 案例）。</li><li><strong>BI 打点 schema 校验前置</strong>：导出时生成参数 schema，开发期警告（第 1 章）。</li></ol>
+<h2>二、效率工具类（复利）</h2>
+<ol><li><strong>打点面板工具</strong>：编辑器内实时打点流水，替代"真机+后台过滤"验证。</li><li><strong>MissionGraph 可视化编辑器</strong>：消除手工 YAML 编辑（配置驱动的代价转移给了程序——工具化把代价拿回来）。</li><li><strong>引导状态 inspection + 快进/回放</strong>。</li><li><strong>skill 矩阵扩展</strong>：code review checklist、打包状态查询。</li></ol>
+<h2>三、架构演进类（低耦合）</h2>
+<ol><li><strong>BI 上报独立协议 + 本地队列补发</strong>（弱网不丢打点）。</li><li><strong>AI 行为节点超时框架化</strong>（所有 Act 节点统一超时与失败态）。</li><li><strong>表现资源生命周期联动清理框架</strong>（退出/跳过路径也清 AOE/timeline）。</li><li><strong>渠道能力矩阵表驱动</strong>（屏蔽点集中配置化）。</li></ol>
+<h2>面试收尾话术</h2>
+<blockquote><p>"短期内我会优先做质量防线的 CI 化——内存基线和死代码扫描这两个已经在手工跑、被验证过有效的东西自动化；中期做 MissionGraph 编辑器这类把配置驱动代价拿回来的工具；长期看 BI 通道解耦这类架构演进。排序逻辑是事故驱动 &gt; 复利 &gt; 低耦合。"</p></blockquote>
+<h2>本章核心记忆点</h2>
+<ul><li>优化方向=事故驱动+复利+低耦合三个排序原则。</li><li>收尾话术三段式：短期质量防线 → 中期工具 → 长期架构。</li></ul>
+</section>
+<section id="ch12">
+<h1>附录：STAR 故事速查卡</h1>
+<blockquote><p>面试前 10 分钟过一遍这张表：每个故事记"一句话根因 + 一个泛化句 + commit 号"。</p></blockquote>
+<table><tr><th>#</th><th>模块</th><th>故事</th><th>一句话根因</th><th>泛化句</th><th>commit</th></tr><tr><td>1</td><td>引导</td><td>重登视频对象悬空引用崩溃</td><td>Lua VM 跨 Restart 存活 + CloseAllUI 跳过 UIGuide + 缓存不失效</td><td>"进度恢复≠对象重建"</td><td>d8743d47</td></tr><tr><td>2</td><td>引导</td><td>GuideLevel99_5 刷怪×2</td><td>earlyInitTime=100 致 InitAsync 重入双图</td><td>单差异点排查法</td><td>326e7d50</td></tr><tr><td>3</td><td>引导</td><td>99_2 武器锁越权解锁</td><td>运镜收尾节点越权全解锁含武器</td><td>恢复必须逐层对应锁定</td><td>1221de89 / c19ab54c</td></tr><tr><td>4</td><td>FPS</td><td>WeaponCamera 运镜悬浮</td><td>相机在全局 rig 不在角色层级</td><td>引用查找半径决定正确性</td><td>275d46a7</td></tr><tr><td>5</td><td>FPS</td><td>AOE vortex 残留</td><td>直接退出路径漏清理</td><td>表现资源与玩法状态联动清理</td><td>7f4d51d6</td></tr><tr><td>6</td><td>FPS</td><td>AI 走位卡死</td><td>Act 节点可能永不到达</td><td>卡死→快速失败</td><td>a3bf1c18</td></tr><tr><td>7</td><td>内存</td><td>BuffUtils 静态累积</td><td>static dic 无 Clear 且污染权重</td><td>内存问题引发正确性问题</td><td>e5c97a70</td></tr><tr><td>8</td><td>内存</td><td>假死事件描边失效</td><td>materials getter 副本上操作无效</td><td>泄漏审计顺带挖出功能 bug</td><td>e5c97a70</td></tr><tr><td>9</td><td>UI</td><td>改装车战力不刷新</td><td>SyncXxx 换表后绑定指旧引用</td><td>响应式绑定失效模式</td><td>1a63f142</td></tr><tr><td>10</td><td>UI</td><td>Timer 静默不执行</td><td>裸两参调用签名不匹配</td><td>静默失败最危险</td><td>d207e952</td></tr><tr><td>11</td><td>BGM</td><td>陨石危机压力音乐卡死</td><td>依赖服务器回推的判定不自洽</td><td>本地终态标记兜底</td><td>da058cca</td></tr><tr><td>12</td><td>BGM</td><td>CG 抢 BGM</td><td>媒体播放无挂起-恢复协议</td><td>统一挂起-恢复协议</td><td>3218d7fc</td></tr><tr><td>13</td><td>BI</td><td>打点 39 打不上</td><td>配置指向不存在引导 ID</td><td>配置是源头，下游白搭</td><td>（挂起待口径）</td></tr><tr><td>14</td><td>BI</td><td>归因轮询探不到桥</td><td>热更 dll 未加载即反射</td><td>DllEntry 门禁泛化为登录期就绪信号</td><td>0d4e22b5</td></tr><tr><td>15</td><td>渠道</td><td>游龙账号隔离</td><td>读侧改了写侧漏</td><td>读写侧一致性工程</td><td>08209006</td></tr><tr><td>16</td><td>渠道</td><td>FCM 安卓 8/9 崩溃</td><td>androidx.core 版本过低</td><td>版本对齐是持续过程</td><td>3f396798</td></tr><tr><td>17</td><td>远征</td><td>缺 Report 崩溃卡死</td><td>回包 SUCCESS 但缺字段无守卫</td><td>服务器回包必须做字段级防御</td><td>013d6ffc</td></tr><tr><td>18</td><td>死代码</td><td>NamePool 3008 行 0 引用</td><td>下线玩法残留堆积</td><td>识别≠已清理</td><td>77c184fe</td></tr></table>
+<h2>使用建议</h2>
+<ol><li>每个故事按"现象→根因→修复→泛化句"四步讲，30~60 秒一个。</li><li>被问"最有挑战的问题"首选 14（归因时序）或 7（内存+正确性双重影响）。</li><li>被问"团队协作/跨端协作"用 13（不越权修跨端口径）。</li></ol>
+</section></main></div></body></html>
