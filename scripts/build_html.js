@@ -79,7 +79,7 @@ header.book .meta { color: #57606a; }
 const html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>SVS 面试应对手册</title><style>' + css + '</style></head><body><div class="layout"><nav class="toc"><h2>目录</h2>' +
   books.map((b, k) => '<a href="#ch' + k + '">' + esc(b.title) + '</a>').join('') +
   '<a class="extra" href="docs/SVS%E9%9D%A2%E8%AF%95%E5%BA%94%E5%AF%B9%E6%89%8B%E5%86%8C.epub">📖 EPUB 版下载 →</a>' +
-  '</nav><main><header class="book"><h1>SVS 面试应对手册</h1><p class="meta">代亦凡 · 编 · 2026 年 10 月 · <a href="https://github.com/liushengliuyun/unity-interview-handbook">GitHub 仓库</a> · <a href="docs/SVS%E9%9D%A2%E8%AF%95%E5%BA%94%E5%AF%B9%E6%89%8B%E5%86%8C.epub">EPUB 下载</a></p></header>' +
+  '</nav><main><header class="book"><h1>SVS 面试应对手册</h1><p class="meta">柳生流云 · 编 · 2026 年 10 月 · <a href="https://github.com/liushengliuyun/unity-interview-handbook">GitHub 仓库</a> · <a href="docs/SVS%E9%9D%A2%E8%AF%95%E5%BA%94%E5%AF%B9%E6%89%8B%E5%86%8C.epub">EPUB 下载</a></p></header>' +
   books.map((b, k) => '<section id="ch' + k + '">\n' + b.body + '\n</section>').join('\n') + '</main></div></body></html>';
 fs.writeFileSync(OUT, html);
 console.log('done, index.html bytes=' + Buffer.byteLength(html) + ', sections=' + books.length);
