@@ -42,16 +42,44 @@ for (const f of ORDER) { const p = path.join(CH, f);
   const md = fs.readFileSync(p, 'utf8');
   const t = md.match(/^# +(.+)$/m); const title = t ? t[1].trim() : f.replace(/\.md$/, '');
   books.push({ f, title, body: md2html(md) }); }
-const css = `*{box-sizing:border-box;}html{scroll-behavior:smooth;}body{margin:0;font-family:"Source Han Serif SC","Noto Serif CJK SC","SimSun",serif;line-height:1.7;color:#222;background:#fff;}
-#layout{display:flex;}#toc{position:sticky;top:0;align-self:flex-start;width:240px;height:100vh;overflow-y:auto;padding:16px;border-right:1px solid #ddd;background:#fafafa;}
-#toc h1{font-size:1.05em;margin:0 0 12px;}#toc a{display:block;padding:4px 6px;color:#333;text-decoration:none;font-size:0.9em;border-radius:4px;}#toc a:hover{background:#eee;}
-#main{flex:1;padding:24px;min-width:0;}section{max-width:46em;margin:0 auto 3em;}h2{margin-top:1.6em;}
-table{border-collapse:collapse;width:100%;margin:0.8em 0;}th,td{border:1px solid #999;padding:4px 8px;text-align:left;}
-code{background:#eee;padding:1px 4px;font-family:Consolas,monospace;font-size:0.92em;}pre{background:#f4f4f4;padding:8px;overflow-x:auto;}pre code{padding:0;background:none;}
-blockquote{border-left:4px solid #aaa;margin:0.8em 0;padding:0.2em 0.8em;color:#444;background:#fafafa;}
-@media(max-width:900px){#toc{display:none;}#main{padding:12px;}}`;
-const html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>SVS 面试应对手册</title><style>' + css + '</style></head><body><div id="layout"><nav id="toc"><h1>SVS 面试应对手册</h1>' +
-  books.map((b, k) => '<a href="#ch' + k + '">' + esc(b.title) + '</a>').join('') + '</nav><main id="main">' +
+const css = `* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+       line-height: 1.75; color: #24292f; background: #fff; }
+.layout { display: flex; max-width: 1280px; margin: 0 auto; }
+nav.toc { width: 300px; flex: none; position: sticky; top: 0;
+          max-height: 100vh; overflow-y: auto; padding: 24px 16px;
+          border-right: 1px solid #d0d7de; background: #f6f8fa; }
+nav.toc h2 { font-size: 1em; margin: 0 0 12px; color: #57606a; }
+nav.toc a { display: block; padding: 5px 10px; border-radius: 6px;
+            color: #24292f; text-decoration: none; font-size: 0.9em; }
+nav.toc a:hover { background: #eaeef2; }
+nav.toc .extra { margin-top: 8px; border-top: 1px solid #d0d7de; padding-top: 8px; }
+main { flex: 1; min-width: 0; padding: 24px 40px 80px; max-width: 860px; }
+h1 { font-size: 1.55em; border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }
+h2 { font-size: 1.25em; border-bottom: 1px solid #eaeef2; padding-bottom: 6px; }
+pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;
+      padding: 12px; overflow-x: auto; font-size: 0.88em; line-height: 1.5; }
+code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 0.9em;
+       background: #f6f8fa; padding: 1px 5px; border-radius: 4px; }
+pre code { background: none; padding: 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.92em; }
+th, td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; }
+th { background: #f6f8fa; }
+blockquote { color: #57606a; border-left: 4px solid #d0d7de;
+             margin-left: 0; padding-left: 12px; }
+header.book { border-bottom: 3px double #d0d7de; margin-bottom: 24px; padding-bottom: 16px; }
+header.book h1 { border: none; margin: 0; }
+header.book .meta { color: #57606a; }
+@media (max-width: 900px) {
+  nav.toc { position: static; width: auto; border-right: none;
+            border-bottom: 1px solid #d0d7de; max-height: none; }
+  .layout { flex-direction: column; }
+}`;
+const html = '<!DOCTYPE html>\n<html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>SVS 面试应对手册</title><style>' + css + '</style></head><body><div class="layout"><nav class="toc"><h2>目录</h2>' +
+  books.map((b, k) => '<a href="#ch' + k + '">' + esc(b.title) + '</a>').join('') +
+  '<a class="extra" href="docs/SVS%E9%9D%A2%E8%AF%95%E5%BA%94%E5%AF%B9%E6%89%8B%E5%86%8C.epub">📖 EPUB 版下载 →</a>' +
+  '</nav><main><header class="book"><h1>SVS 面试应对手册</h1><p class="meta">代亦凡 · 编 · 2026 年 10 月 · <a href="https://github.com/liushengliuyun/unity-interview-handbook">GitHub 仓库</a> · <a href="docs/SVS%E9%9D%A2%E8%AF%95%E5%BA%94%E5%AF%B9%E6%89%8B%E5%86%8C.epub">EPUB 下载</a></p></header>' +
   books.map((b, k) => '<section id="ch' + k + '">\n' + b.body + '\n</section>').join('\n') + '</main></div></body></html>';
 fs.writeFileSync(OUT, html);
 console.log('done, index.html bytes=' + Buffer.byteLength(html) + ', sections=' + books.length);
